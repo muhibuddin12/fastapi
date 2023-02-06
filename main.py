@@ -1,27 +1,34 @@
-from typing import Union
-
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
 from pydantic import BaseModel
+import uvicorn
 
 app = FastAPI()
 
-
 class Item(BaseModel):
+    item_id: int
     name: str
     price: float
-    is_offer: Union[bool, None] = None
+    description: str
+    category: str
 
+@app.post("/items/")
+async def create_item(item: Item):
+    return item
 
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
+# using query 
+@app.get("/products")
+async def get_products(name: str | None = Query(default=..., max_length=10)):
+    results = {"items": [{"item_id": "Foo"}, {"item_id": "Bar"}]}
+    if name:
+        results.update({"Product": name})
+    return results
 
+@app.get("/mahasiswa")
+async def get_mahasiswa(name: list[str] | None = Query(default=...)):
+    results = {"mahasiswa": [{"name": "sultan"}, {"name": "Babiono"}]}
+    for value in name:
+        results["mahasiswa"].append({"name": value})
+    return results
 
-@app.get("/items/{item_id}")
-def read_item(item_id: int, q: Union[str, None] = None):
-    return {"item_id": item_id, "q": q}
-
-
-@app.put("/items/{item_id}")
-def update_item(item_id: int, item: Item):
-    return {"item_name": item.name, "item_id": item_id}
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000)
